@@ -23,8 +23,9 @@ text { fill:var(--fg); font-size:17px; text-anchor:middle; pointer-events:none; 
 #map .alt { fill:var(--accent); stroke:var(--fg); stroke-dasharray:2 1.5; }
 .in { --hl:#ff9a9a; --hlroot:var(--red); }
 .btn { cursor:pointer; }
-.btn:hover rect, .btn:hover circle, .btn:focus rect, .btn:focus circle { fill:var(--accent); }
+.btn:hover rect, .btn:hover circle { fill:var(--accent); }
 .btn:focus { outline:none; }
+.btn:focus-visible rect, .btn:focus-visible circle { stroke:var(--fg); stroke-width:3; }
 .center circle { stroke-width:2.5; }
 .center text { font-size:30px; font-weight:600; }
 .slot text { font-size:15px; }

@@ -90,8 +90,11 @@ function render() {
       s += `<g class="slot btn node${p === root ? ' sel' : ''}" data-pick="${p}" tabindex="0" role="button" aria-label="${lab}7"><circle cx="${x}" cy="${y}" r="29"/><text dy=".35em" x="${x}" y="${y}">${lab}</text></g>`;
     });
   }
+  const had = map.contains(document.activeElement);
   map.innerHTML = s;
   map.classList.toggle('open', open);
+  // innerHTML drops the focused node; hand focus to the new centre
+  if (had) map.querySelector('#c').focus();
   history.replaceState(null, '', '#' + root);
 }
 
