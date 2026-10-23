@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>V7 Secondary Dominant Harmony Map</title>
+<style>
+:root { --bg:#fafafa; --fg:#222; --node:#fff; --edge:#555; --red:#d22; --accent:#e8eefc; --line:#888; color-scheme: light; }
+@media (prefers-color-scheme: dark) {
+  :root { --bg:#16181d; --fg:#e8e8e8; --node:#23262d; --edge:#aaa; --red:#ff6b6b; --accent:#2c3a5c; --line:#777; color-scheme: dark; }
+}
+body { margin:0; padding:1rem; background:var(--bg); color:var(--fg); font:16px/1.3 system-ui, sans-serif; }
+h1 { font-size:1.1rem; margin:0 0 .25rem; }
+p { margin:0 0 .5rem; opacity:.7; font-size:.85rem; }
+svg { width:100%; max-width:900px; height:auto; display:block; margin:auto; }
+text { fill:var(--fg); font-size:17px; text-anchor:middle; dominant-baseline:central; pointer-events:none; }
+.node rect, .node circle { fill:var(--node); stroke:var(--line); stroke-width:1.5; }
+#a path { fill:var(--edge); }
+#ar path { fill:var(--red); }
+.edge { stroke:var(--edge); stroke-width:1.8; fill:none; }
+.lbl { font-size:17px; paint-order:stroke; stroke:var(--bg); stroke-width:6px; }
+.in .node-box, .in .edge { stroke:var(--red); }
+.in text { fill:var(--red); }
+.in .edge { stroke-width:2.5; }
+.in .lbl { stroke:var(--bg); }
+.btn { cursor:pointer; }
+.btn:hover rect, .btn:hover circle, .btn:focus rect, .btn:focus circle { fill:var(--accent); }
+.btn:focus { outline:none; }
+.center circle { stroke-width:2.5; }
+.center text { font-size:30px; font-weight:600; }
+.slot text { font-size:15px; }
+.slot.sel circle { fill:var(--accent); stroke-width:3; }
+#map.open .dim { opacity:.15; }
+</style>
+</head>
+<body>
+<h1>V7 Secondary Dominant Harmony Map</h1>
+<p>Click the centre circle to pick a chord. Click a red chord to make it the centre. Labels: root motion in semitones (⊕ up, ⊖ down).</p>
+<svg id="map" viewBox="0 0 720 460" role="group" aria-label="Dominant chord transitions"></svg>
+<script>
+const SHARP = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const FLAT  = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'];
+const FLAT_ROOTS = [1, 3, 5, 8, 10];
+const SLOT_LABEL = SHARP.map((s, i) => FLAT[i] === s ? s : s + '/' + FLAT[i]);
+
+// [semitone offset from X, edge label]
+const OUT = [[-1, '⊖1'], [2, '⊕2'], [-7, '⊖7']];
+const IN = [[7, '⊖7', 'sec. do'], [6, '⊕6', 'sub. do'], [1, '⊖1', 'sub. do sec. do']];
+
+const CX = 360, CY = 230, R = 52, W = 180, H = 46;
+const YS = [70, 230, 390];
+const map = document.getElementById('map');
+let root = 2, open = false;
+
+const names = r => FLAT_ROOTS.includes(r) ? FLAT : SHARP;
+const pc = n => ((n % 12) + 12) % 12;
+
+function render() {
+  const n = names(root);
+  let s = `<defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z"/></marker>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z"/></marker>
+  </defs><g class="dim">`;
+
+  const arrow = (x1, y1, x2, y2, lbl, m = 'a') => {
+    s += `<path class="edge" d="M${x1} ${y1}L${x2} ${y2}" marker-end="url(#${m})"/>` +
+         `<text class="lbl" x="${(x1 + x2) / 2}" y="${(y1 + y2) / 2 - 12}">${lbl}</text>`;
+  };
+  // point on circle rim facing (x,y)
+  const rim = (x, y) => { const d = Math.hypot(x - CX, y - CY); return [CX + (x - CX) * (R + 2) / d, CY + (y - CY) * (R + 2) / d]; };
+
+  OUT.forEach(([off, lbl], i) => {
+    const t = n[pc(root + off)], x = 630 - W / 2, y = YS[i];
+    const [rx, ry] = rim(x - W / 2, y);
+    s += `<g class="out"><g class="node"><rect class="node-box" x="${x - W / 2}" y="${y - H / 2}" width="${W}" height="${H}" rx="10"/><text x="${x}" y="${y}">${t} / ${t}m</text></g>`;
+    arrow(rx, ry, x - W / 2 - 2, y, lbl);
+    s += `</g>`;
+  });
+
+  IN.forEach(([off, lbl, role], i) => {
+    const t = n[pc(root + off)], x = 90 + W / 2, y = YS[i];
+    const [rx, ry] = rim(x + W / 2, y);
+    s += `<g class="in btn" data-pc="${pc(root + off)}" tabindex="0" role="button" aria-label="Go to ${t}7"><g class="node"><rect class="node-box" x="${x - W / 2}" y="${y - H / 2}" width="${W}" height="${H}" rx="10"/><text x="${x}" y="${y - 7}">${t}7</text><text x="${x}" y="${y + 12}" style="font-size:12px">${role} ${n[root]}7</text></g>`;
+    arrow(x + W / 2 + 2, y, rx, ry, lbl, 'ar');
+    s += `</g>`;
+  });
+  s += `</g>`;
+
+  s += `<g class="center btn" id="c" tabindex="0" role="button" aria-expanded="${open}" aria-label="Choose chord"><g class="node"><circle cx="${CX}" cy="${CY}" r="${R}"/><text x="${CX}" y="${CY}">${n[root]}7</text></g></g>`;
+
+  if (open) {
+    SLOT_LABEL.forEach((lab, p) => {
+      const a = (p * 30 - 90) * Math.PI / 180, x = CX + 135 * Math.cos(a), y = CY + 135 * Math.sin(a);
+      s += `<g class="slot btn node${p === root ? ' sel' : ''}" data-pick="${p}" tabindex="0" role="button" aria-label="${lab}7"><circle cx="${x}" cy="${y}" r="29"/><text x="${x}" y="${y}">${lab}</text></g>`;
+    });
+  }
+  map.innerHTML = s;
+  map.classList.toggle('open', open);
+  history.replaceState(null, '', '#' + root);
+}
+
+function set(r) { root = pc(r); open = false; render(); }
+
+map.addEventListener('click', e => {
+  const pick = e.target.closest('[data-pick]'), go = e.target.closest('[data-pc]');
+  if (pick) set(+pick.dataset.pick);
+  else if (go) set(+go.dataset.pc);
+  else if (e.target.closest('#c')) { open = !open; render(); map.querySelector('#c').focus(); }
+  else if (open) { open = false; render(); }
+});
+map.addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.target.dispatchEvent(new MouseEvent('click', { bubbles: true })); }
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && open) { open = false; render(); } });
+window.addEventListener('hashchange', () => { const h = parseInt(location.hash.slice(1), 10); if (h >= 0 && h < 12 && h !== root) set(h); });
+
+// self-check: derived chord names
+const names7 = r => [...OUT.map(([o]) => names(r)[pc(r + o)]), ...IN.map(([o]) => names(r)[pc(r + o)] + '7')].join();
+console.assert(names7(2) === 'C#,E,G,A7,G#7,D#7', 'D map', names7(2));
+console.assert(names7(10) === 'A,C,Eb,F7,E7,B7', 'Bb map', names7(10));
+
+const h0 = parseInt(location.hash.slice(1), 10);
+if (h0 >= 0 && h0 < 12) root = h0;
+render();
+</script>
+</body>
+</html>

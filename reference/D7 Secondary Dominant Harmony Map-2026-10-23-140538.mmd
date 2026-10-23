@@ -1,0 +1,28 @@
+---
+config:
+  fontFamily: '''Recursive Variable'', sans-serif'
+  look: neo
+  theme: redux-color
+  layout: dagre
+  themeVariables:
+    fontFamily: '''Recursive Variable'', sans-serif'
+  themeCSS: |
+    .edgeLabel, .edgeLabel p, .edgeLabel span {
+      font-size: 1.1em !important;
+    }
+---
+flowchart LR
+    D7(("D7")):::big -- "⊖0.5" --> C["C# / C#m"]
+    D7 -- ⊕1 --> E["Em / E"]
+    D7 -- "⊖3.5" --> G["G / Gm"]
+    A7["A7 (sec. do D7)"] -- "⊖3.5" --> D7
+    Gs7["G#7 (sub. do D7)"] -- ⊕3 --> D7
+    Ds7["D#7 (sub. do sec. do D7)"] -- "⊖0.5" --> D7
+
+
+classDef big font-size: 1.5em
+
+linkStyle 3,4,5 stroke:red,stroke-width:2px
+    style A7 stroke:red,color:red
+    style Gs7 stroke:red,color:red
+    style Ds7 stroke:red,color:red
