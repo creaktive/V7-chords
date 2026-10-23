@@ -7,9 +7,9 @@ const SLOT_LABEL = SHARP.map((s, i) => FLAT[i] === s ? s : s + '/' + FLAT[i]);
 const OUT = [[-1, '⊖1'], [2, '⊕2'], [-7, '⊖7']];
 const IN = [[7, '⊖7', 'sec. dom. of'], [6, '⊕6', 'sub. of'], [1, '⊖1', 'sub. of sec. dom. of']];
 
-const CX = 400, CY = 230, R = 88, W = 180, H = 112;
-const YS = [70, 230, 390];
+const R = 88;
 const map = document.getElementById('map');
+const narrow = matchMedia('(max-width: 599px)');
 let root = 2, open = false;
 
 // Key geometry from http://www.quadibloc.com/other/cnv05.htm, emitting SVG instead of p5 calls
@@ -38,22 +38,37 @@ class PianoOctave {
     return out
   }
 }
-const po = new PianoOctave(0.4)
+const po = new PianoOctave(0.4), poSmall = new PianoOctave(0.3)
 
 // two octaves from C; intervals above root r are highlighted, `alt` marks an optional (minor) third
-const piano = (x, y, r, ivs, alt) => {
+const piano = (p, x, y, r, ivs, alt) => {
   const c = Array(24).fill('')
   ivs.forEach(iv => { c[r + iv] = iv ? 'on' : 'on root' })
   if (alt !== undefined) c[r + alt] = 'alt'
-  return `<g transform="translate(${x - po.width} ${y})">${po.svg(c.slice(0, 12))}<g transform="translate(${po.width} 0)">${po.svg(c.slice(12))}</g></g>`
+  return `<g transform="translate(${x - p.width} ${y})">${p.svg(c.slice(0, 12))}<g transform="translate(${p.width} 0)">${p.svg(c.slice(12))}</g></g>`
 }
 const DOM7 = [0, 4, 7, 10], TRIAD = [0, 4, 7]
 const names = r => FLAT_ROOTS.includes(r) ? FLAT : SHARP;
 const pc = n => ((n % 12) + 12) % 12;
 
+// WIDE: nodes in two side columns (tablet and up). TALL: nodes in two rows, three across (phone in portrait).
+// `to` points from a node towards the centre; `ty` and `py` are the title and keyboard offsets from the node top.
+// TALL `w` must fit the widest role line, "sub. of sec. dom. of" (about 100 units at 11px); widen it if that text grows.
+const YS = [70, 230, 390], XS = [66, 192, 318];
+const WIDE = {
+  vb: '0 0 800 460', cx: 400, cy: 230, lbl: -12, stack: false,
+  in:  { w: 180, h: 112, at: i => [130, YS[i]], to: [1, 0], ty: 20, py: 46, pk: po },
+  out: { w: 180, h: 112, at: i => [670, YS[i]], to: [-1, 0], ty: 20, py: 44, pk: po },
+};
+const TALL = {
+  vb: '0 0 384 514', cx: 192, cy: 270, lbl: 0, stack: true,
+  in:  { w: 120, h: 106, at: i => [XS[i], 59], to: [0, 1], ty: 17, py: 54, pk: poSmall },
+  out: { w: 120, h: 80, at: i => [XS[i], 468], to: [0, -1], ty: 17, py: 28, pk: poSmall },
+};
+
 // markup for one state; root/open are arguments (shadowing the globals) so the self-check can draw any root
-function draw(root, open) {
-  const n = names(root);
+function draw(root, open, L = WIDE) {
+  const n = names(root), { cx, cy } = L;
   let s = `<defs>
     <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z"/></marker>
     <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z"/></marker>
@@ -61,33 +76,39 @@ function draw(root, open) {
 
   const arrow = (x1, y1, x2, y2, lbl, m = 'a') => {
     s += `<path class="edge" d="M${x1} ${y1}L${x2} ${y2}" marker-end="url(#${m})"/>` +
-         `<text dy=".35em" class="lbl" x="${(x1 + x2) / 2}" y="${(y1 + y2) / 2 - 12}">${lbl}</text>`;
+         `<text dy=".35em" class="lbl" x="${(x1 + x2) / 2}" y="${(y1 + y2) / 2 + L.lbl}">${lbl}</text>`;
   };
   // point on circle rim facing (x,y)
-  const rim = (x, y) => { const d = Math.hypot(x - CX, y - CY); return [CX + (x - CX) * (R + 2) / d, CY + (y - CY) * (R + 2) / d]; };
+  const rim = (x, y) => { const d = Math.hypot(x - cx, y - cy); return [cx + (x - cx) * (R + 2) / d, cy + (y - cy) * (R + 2) / d]; };
 
   OUT.forEach(([off, lbl], i) => {
-    const r = pc(root + off), t = n[r], x = 760 - W / 2, y = YS[i], top = y - H / 2;
-    const [rx, ry] = rim(x - W / 2, y);
-    s += `<g class="out"><g class="node"><rect class="node-box" x="${x - W / 2}" y="${top}" width="${W}" height="${H}" rx="10"/><text dy=".35em" x="${x}" y="${top + 20}">${t} / ${t}m</text></g>${piano(x, top + 44, r, TRIAD, 3)}`;
-    arrow(rx, ry, x - W / 2 - 2, y, lbl);
+    const { w, h, at, to, ty, py, pk } = L.out, [x, y] = at(i), r = pc(root + off), t = n[r], top = y - h / 2;
+    const [ex, ey] = [x + to[0] * w / 2, y + to[1] * h / 2]; // node edge facing the centre
+    const [rx, ry] = rim(ex, ey);
+    s += `<g class="out"><g class="node"><rect class="node-box" x="${x - w / 2}" y="${top}" width="${w}" height="${h}" rx="10"/><text dy=".35em" x="${x}" y="${top + ty}">${t} / ${t}m</text></g>${piano(pk, x, top + py, r, TRIAD, 3)}`;
+    arrow(rx, ry, ex + to[0] * 2, ey + to[1] * 2, lbl);
     s += `</g>`;
   });
 
   IN.forEach(([off, lbl, role], i) => {
-    const r = pc(root + off), t = n[r], x = 40 + W / 2, y = YS[i], top = y - H / 2;
-    const [rx, ry] = rim(x + W / 2, y);
-    s += `<g class="in btn" data-pc="${r}" tabindex="0" role="button" aria-label="Go to ${t}7 (${role} ${n[root]}7)"><g class="node"><rect class="node-box" x="${x - W / 2}" y="${top}" width="${W}" height="${H}" rx="10"/><text dy=".35em" x="${x}" y="${top + 20}">${t}7 <tspan style="font-size:10px">(${role} ${n[root]}7)</tspan></text></g>${piano(x, top + 46, r, DOM7)}`;
-    arrow(x + W / 2 + 2, y, rx, ry, lbl, 'ar');
+    const { w, h, at, to, ty, py, pk } = L.in, [x, y] = at(i), r = pc(root + off), t = n[r], top = y - h / 2;
+    const [ex, ey] = [x + to[0] * w / 2, y + to[1] * h / 2];
+    const [rx, ry] = rim(ex, ey);
+    // wide: the role note shares the chord's line; tall: three nodes across leave no room, so it gets its own lines
+    const head = L.stack
+      ? `<text dy=".35em" x="${x}" y="${top + ty}">${t}7</text><text class="role" dy=".35em" x="${x}" y="${top + ty + 16}">${role}</text><text class="role" dy=".35em" x="${x}" y="${top + ty + 29}">${n[root]}7</text>`
+      : `<text dy=".35em" x="${x}" y="${top + ty}">${t}7 <tspan style="font-size:10px">(${role} ${n[root]}7)</tspan></text>`;
+    s += `<g class="in btn" data-pc="${r}" tabindex="0" role="button" aria-label="Go to ${t}7 (${role} ${n[root]}7)"><g class="node"><rect class="node-box" x="${x - w / 2}" y="${top}" width="${w}" height="${h}" rx="10"/>${head}</g>${piano(pk, x, top + py, r, DOM7)}`;
+    arrow(ex + to[0] * 2, ey + to[1] * 2, rx, ry, lbl, 'ar');
     s += `</g>`;
   });
   s += `</g>`;
 
-  s += `<g class="center btn" id="c" tabindex="0" role="button" aria-expanded="${open}" aria-label="${n[root]}7, choose chord"><g class="node"><circle cx="${CX}" cy="${CY}" r="${R}"/><text dy=".35em" x="${CX}" y="${CY - 38}">${n[root]}7</text></g>${piano(CX, CY - 10, root, DOM7)}</g>`;
+  s += `<g class="center btn" id="c" tabindex="0" role="button" aria-expanded="${open}" aria-label="${n[root]}7, choose chord"><g class="node"><circle cx="${cx}" cy="${cy}" r="${R}"/><text dy=".35em" x="${cx}" y="${cy - 38}">${n[root]}7</text></g>${piano(po, cx, cy - 10, root, DOM7)}</g>`;
 
   if (open) {
     SLOT_LABEL.forEach((lab, p) => {
-      const a = (p * 30 - 90) * Math.PI / 180, x = CX + 135 * Math.cos(a), y = CY + 135 * Math.sin(a);
+      const a = (p * 30 - 90) * Math.PI / 180, x = cx + 135 * Math.cos(a), y = cy + 135 * Math.sin(a);
       s += `<g class="slot btn node${p === root ? ' sel' : ''}" data-pick="${p}" tabindex="0" role="button" aria-label="${lab}7"><circle cx="${x}" cy="${y}" r="29"/><text dy=".35em" x="${x}" y="${y}">${lab}</text></g>`;
     });
   }
@@ -95,8 +116,9 @@ function draw(root, open) {
 }
 
 function render() {
-  const had = map.contains(document.activeElement);
-  map.innerHTML = draw(root, open);
+  const had = map.contains(document.activeElement), L = narrow.matches ? TALL : WIDE;
+  map.setAttribute('viewBox', L.vb);
+  map.innerHTML = draw(root, open, L);
   map.classList.toggle('open', open);
   // innerHTML drops the focused node; hand focus to the new centre
   if (had) map.querySelector('#c').focus();
@@ -115,6 +137,7 @@ map.addEventListener('keydown', e => {
   if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (!e.repeat) e.target.dispatchEvent(new MouseEvent('click', { bubbles: true })); }
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && open) { open = false; render(); } });
+narrow.addEventListener('change', render);
 // root from the URL hash; the current root when the hash is missing or invalid
 const fromHash = () => { const h = parseInt(location.hash.slice(1), 10); return h >= 0 && h < 12 ? h : root; };
 window.addEventListener('hashchange', () => { const h = fromHash(); if (h !== root) set(h); });
@@ -131,8 +154,8 @@ const lit = (g, cls) => [...g.querySelectorAll('.kw, .kb')]
 const nameOf = g => g.querySelector('.node text').textContent.split(' ')[0];
 const KNOWN = { 2: 'C♯,E,G,A7,G♯7,D♯7', 10: 'A,C,E♭,F7,E7,B7' }; // D map, B♭ map
 const probe = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-for (let r = 0; r < 12; r++) {
-  probe.innerHTML = draw(r, false);
+for (const L of [WIDE, TALL]) for (let r = 0; r < 12; r++) {
+  probe.innerHTML = draw(r, false, L);
   const shown = [...probe.querySelectorAll('.out, .in')].map(nameOf).join();
   console.assert(!KNOWN[r] || shown === KNOWN[r], 'names', r, shown);
   probe.querySelectorAll('.out, .in, .center').forEach(g => {
