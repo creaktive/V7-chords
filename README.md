@@ -1,3 +1,5 @@
+<img src="icon.svg" alt="" width="96" align="right">
+
 # V7 Secondary Dominant Harmony Map
 
 An interactive map of how a dominant 7th chord connects to its neighbours, with a small piano keyboard on every chord showing which keys to press.

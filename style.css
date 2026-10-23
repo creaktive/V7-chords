@@ -2,7 +2,7 @@
 @media (prefers-color-scheme: dark) {
   :root { --bg:#16181d; --fg:#e8e8e8; --node:#23262d; --edge:#aaa; --red:#ff6b6b; --accent:#2c3a5c; --line:#777; --hl:#5f86e0; --hlroot:#9db9ff; --key:#e8e8e8; --blk:#14161a; color-scheme: dark; }
 }
-body { margin:0; padding:1rem; background:var(--bg); color:var(--fg); font:16px/1.3 "Helvetica Neue", "Segoe UI Symbol", "DejaVu Sans", sans-serif; }
+body { margin:0; padding:max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left)); background:var(--bg); color:var(--fg); font:16px/1.3 "Helvetica Neue", "Segoe UI Symbol", "DejaVu Sans", sans-serif; }
 h1 { font-size:1.1rem; margin:0 0 .25rem; text-align:center; }
 p, footer { margin:0 0 .5rem; text-align:center; opacity:.7; font-size:.85rem; }
 footer { margin-top:.5rem; }
