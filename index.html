@@ -9,11 +9,11 @@
 @media (prefers-color-scheme: dark) {
   :root { --bg:#16181d; --fg:#e8e8e8; --node:#23262d; --edge:#aaa; --red:#ff6b6b; --accent:#2c3a5c; --line:#777; color-scheme: dark; }
 }
-body { margin:0; padding:1rem; background:var(--bg); color:var(--fg); font:16px/1.3 system-ui, sans-serif; }
+body { margin:0; padding:1rem; background:var(--bg); color:var(--fg); font:16px/1.3 "Helvetica Neue", "Segoe UI Symbol", "DejaVu Sans", sans-serif; }
 h1 { font-size:1.1rem; margin:0 0 .25rem; }
 p { margin:0 0 .5rem; opacity:.7; font-size:.85rem; }
 svg { width:100%; max-width:900px; height:auto; display:block; margin:auto; }
-text { fill:var(--fg); font-size:17px; text-anchor:middle; dominant-baseline:central; pointer-events:none; }
+text { fill:var(--fg); font-size:17px; text-anchor:middle; pointer-events:none; }
 .node rect, .node circle { fill:var(--node); stroke:var(--line); stroke-width:1.5; }
 #a path { fill:var(--edge); }
 #ar path { fill:var(--red); }
@@ -38,8 +38,8 @@ text { fill:var(--fg); font-size:17px; text-anchor:middle; dominant-baseline:cen
 <p>Click the centre circle to pick a chord. Click a red chord to make it the centre. Labels: root motion in semitones (⊕ up, ⊖ down).</p>
 <svg id="map" viewBox="0 0 720 460" role="group" aria-label="Dominant chord transitions"></svg>
 <script>
-const SHARP = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
-const FLAT  = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'];
+const SHARP = ['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
+const FLAT  = ['C','D♭','D','E♭','E','F','G♭','G','A♭','A','B♭','B'];
 const FLAT_ROOTS = [1, 3, 5, 8, 10];
 const SLOT_LABEL = SHARP.map((s, i) => FLAT[i] === s ? s : s + '/' + FLAT[i]);
 
@@ -64,7 +64,7 @@ function render() {
 
   const arrow = (x1, y1, x2, y2, lbl, m = 'a') => {
     s += `<path class="edge" d="M${x1} ${y1}L${x2} ${y2}" marker-end="url(#${m})"/>` +
-         `<text class="lbl" x="${(x1 + x2) / 2}" y="${(y1 + y2) / 2 - 12}">${lbl}</text>`;
+         `<text dy=".35em" class="lbl" x="${(x1 + x2) / 2}" y="${(y1 + y2) / 2 - 12}">${lbl}</text>`;
   };
   // point on circle rim facing (x,y)
   const rim = (x, y) => { const d = Math.hypot(x - CX, y - CY); return [CX + (x - CX) * (R + 2) / d, CY + (y - CY) * (R + 2) / d]; };
@@ -72,7 +72,7 @@ function render() {
   OUT.forEach(([off, lbl], i) => {
     const t = n[pc(root + off)], x = 630 - W / 2, y = YS[i];
     const [rx, ry] = rim(x - W / 2, y);
-    s += `<g class="out"><g class="node"><rect class="node-box" x="${x - W / 2}" y="${y - H / 2}" width="${W}" height="${H}" rx="10"/><text x="${x}" y="${y}">${t} / ${t}m</text></g>`;
+    s += `<g class="out"><g class="node"><rect class="node-box" x="${x - W / 2}" y="${y - H / 2}" width="${W}" height="${H}" rx="10"/><text dy=".35em" x="${x}" y="${y}">${t} / ${t}m</text></g>`;
     arrow(rx, ry, x - W / 2 - 2, y, lbl);
     s += `</g>`;
   });
@@ -80,18 +80,18 @@ function render() {
   IN.forEach(([off, lbl, role], i) => {
     const t = n[pc(root + off)], x = 90 + W / 2, y = YS[i];
     const [rx, ry] = rim(x + W / 2, y);
-    s += `<g class="in btn" data-pc="${pc(root + off)}" tabindex="0" role="button" aria-label="Go to ${t}7"><g class="node"><rect class="node-box" x="${x - W / 2}" y="${y - H / 2}" width="${W}" height="${H}" rx="10"/><text x="${x}" y="${y - 7}">${t}7</text><text x="${x}" y="${y + 12}" style="font-size:12px">${role} ${n[root]}7</text></g>`;
+    s += `<g class="in btn" data-pc="${pc(root + off)}" tabindex="0" role="button" aria-label="Go to ${t}7"><g class="node"><rect class="node-box" x="${x - W / 2}" y="${y - H / 2}" width="${W}" height="${H}" rx="10"/><text dy=".35em" x="${x}" y="${y - 7}">${t}7</text><text dy=".35em" x="${x}" y="${y + 12}" style="font-size:12px">${role} ${n[root]}7</text></g>`;
     arrow(x + W / 2 + 2, y, rx, ry, lbl, 'ar');
     s += `</g>`;
   });
   s += `</g>`;
 
-  s += `<g class="center btn" id="c" tabindex="0" role="button" aria-expanded="${open}" aria-label="Choose chord"><g class="node"><circle cx="${CX}" cy="${CY}" r="${R}"/><text x="${CX}" y="${CY}">${n[root]}7</text></g></g>`;
+  s += `<g class="center btn" id="c" tabindex="0" role="button" aria-expanded="${open}" aria-label="Choose chord"><g class="node"><circle cx="${CX}" cy="${CY}" r="${R}"/><text dy=".35em" x="${CX}" y="${CY}">${n[root]}7</text></g></g>`;
 
   if (open) {
     SLOT_LABEL.forEach((lab, p) => {
       const a = (p * 30 - 90) * Math.PI / 180, x = CX + 135 * Math.cos(a), y = CY + 135 * Math.sin(a);
-      s += `<g class="slot btn node${p === root ? ' sel' : ''}" data-pick="${p}" tabindex="0" role="button" aria-label="${lab}7"><circle cx="${x}" cy="${y}" r="29"/><text x="${x}" y="${y}">${lab}</text></g>`;
+      s += `<g class="slot btn node${p === root ? ' sel' : ''}" data-pick="${p}" tabindex="0" role="button" aria-label="${lab}7"><circle cx="${x}" cy="${y}" r="29"/><text dy=".35em" x="${x}" y="${y}">${lab}</text></g>`;
     });
   }
   map.innerHTML = s;
@@ -116,8 +116,8 @@ window.addEventListener('hashchange', () => { const h = parseInt(location.hash.s
 
 // self-check: derived chord names
 const names7 = r => [...OUT.map(([o]) => names(r)[pc(r + o)]), ...IN.map(([o]) => names(r)[pc(r + o)] + '7')].join();
-console.assert(names7(2) === 'C#,E,G,A7,G#7,D#7', 'D map', names7(2));
-console.assert(names7(10) === 'A,C,Eb,F7,E7,B7', 'Bb map', names7(10));
+console.assert(names7(2) === 'C♯,E,G,A7,G♯7,D♯7', 'D map', names7(2));
+console.assert(names7(10) === 'A,C,E♭,F7,E7,B7', 'Bb map', names7(10));
 
 const h0 = parseInt(location.hash.slice(1), 10);
 if (h0 >= 0 && h0 < 12) root = h0;
