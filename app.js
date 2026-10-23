@@ -51,7 +51,8 @@ const DOM7 = [0, 4, 7, 10], TRIAD = [0, 4, 7]
 const names = r => FLAT_ROOTS.includes(r) ? FLAT : SHARP;
 const pc = n => ((n % 12) + 12) % 12;
 
-function render() {
+// markup for one state; root/open are arguments (shadowing the globals) so the self-check can draw any root
+function draw(root, open) {
   const n = names(root);
   let s = `<defs>
     <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z"/></marker>
@@ -90,8 +91,12 @@ function render() {
       s += `<g class="slot btn node${p === root ? ' sel' : ''}" data-pick="${p}" tabindex="0" role="button" aria-label="${lab}7"><circle cx="${x}" cy="${y}" r="29"/><text dy=".35em" x="${x}" y="${y}">${lab}</text></g>`;
     });
   }
+  return s;
+}
+
+function render() {
   const had = map.contains(document.activeElement);
-  map.innerHTML = s;
+  map.innerHTML = draw(root, open);
   map.classList.toggle('open', open);
   // innerHTML drops the focused node; hand focus to the new centre
   if (had) map.querySelector('#c').focus();
@@ -113,16 +118,29 @@ map.addEventListener('keydown', e => {
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && open) { open = false; render(); } });
 window.addEventListener('hashchange', () => { const h = parseInt(location.hash.slice(1), 10); if (h >= 0 && h < 12 && h !== root) set(h); });
 
-// self-check: derived chord names
-const names7 = r => [...OUT.map(([o]) => names(r)[pc(r + o)]), ...IN.map(([o]) => names(r)[pc(r + o)] + '7')].join();
-console.assert(names7(2) === 'C♯,E,G,A7,G♯7,D♯7', 'D map', names7(2));
-console.assert(names7(10) === 'A,C,E♭,F7,E7,B7', 'Bb map', names7(10));
-
-const tones = (r, iv) => iv.map(i => pc(r + i)).join();
-console.assert(tones(2, DOM7) === '2,6,9,0', 'D7 tones');
-console.assert(tones(10, DOM7) === '10,2,5,8', 'Bb7 tones');
-console.assert(tones(1, TRIAD) === '1,5,8' && pc(1 + 3) === 4, 'C# triad + alt');
-
 const h0 = parseInt(location.hash.slice(1), 10);
 if (h0 >= 0 && h0 < 12) root = h0;
 render();
+
+// self-check, run last so a throw here cannot blank the page:
+// draw every root, then read the names and lit keys back from the markup
+const KEY_PC = [0, 2, 4, 5, 7, 9, 11, 1, 3, 6, 8, 10]; // nth key of an octave: 7 white, then 5 black
+const lit = (g, cls) => [...g.querySelectorAll('.kw, .kb')]
+  .flatMap((k, i) => k.classList.contains(cls) ? [KEY_PC[i % 12] + 12 * (i > 11)] : [])
+  .sort((a, b) => a - b).join();
+const nameOf = g => g.querySelector('.node text').textContent.split(' ')[0];
+const KNOWN = { 2: 'C♯,E,G,A7,G♯7,D♯7', 10: 'A,C,E♭,F7,E7,B7' }; // D map, B♭ map
+const probe = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+for (let r = 0; r < 12; r++) {
+  probe.innerHTML = draw(r, false);
+  const shown = [...probe.querySelectorAll('.out, .in')].map(nameOf).join();
+  console.assert(!KNOWN[r] || shown === KNOWN[r], 'names', r, shown);
+  probe.querySelectorAll('.out, .in, .center').forEach(g => {
+    // each keyboard must light exactly the chord its own label names
+    const name = nameOf(g), seventh = name.endsWith('7'), base = name.replace('7', '');
+    const k = Math.max(SHARP.indexOf(base), FLAT.indexOf(base));
+    console.assert(lit(g, 'on') === (seventh ? [0, 4, 7, 10] : [0, 4, 7]).map(v => k + v).join(), 'lit keys', r, name, lit(g, 'on'));
+    console.assert(lit(g, 'root') === String(k), 'root key', r, name);
+    console.assert(lit(g, 'alt') === (seventh ? '' : String(k + 3)), 'alt key', r, name);
+  });
+}
