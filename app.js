@@ -12,7 +12,7 @@ const YS = [70, 230, 390];
 const map = document.getElementById('map');
 let root = 2, open = false;
 
-// Key geometry from http://www.quadibloc.com/other/cnv05.htm (via sketch.js), emitting SVG instead of p5 calls
+// Key geometry from http://www.quadibloc.com/other/cnv05.htm, emitting SVG instead of p5 calls
 class PianoOctave {
   constructor (scale = 1.0) {
     this.whiteHeight = 150 * scale
@@ -77,13 +77,13 @@ function draw(root, open) {
   IN.forEach(([off, lbl, role], i) => {
     const r = pc(root + off), t = n[r], x = 40 + W / 2, y = YS[i], top = y - H / 2;
     const [rx, ry] = rim(x + W / 2, y);
-    s += `<g class="in btn" data-pc="${r}" tabindex="0" role="button" aria-label="Go to ${t}7"><g class="node"><rect class="node-box" x="${x - W / 2}" y="${top}" width="${W}" height="${H}" rx="10"/><text dy=".35em" x="${x}" y="${top + 20}">${t}7 <tspan style="font-size:10px">(${role} ${n[root]}7)</tspan></text></g>${piano(x, top + 46, r, DOM7)}`;
+    s += `<g class="in btn" data-pc="${r}" tabindex="0" role="button" aria-label="Go to ${t}7 (${role} ${n[root]}7)"><g class="node"><rect class="node-box" x="${x - W / 2}" y="${top}" width="${W}" height="${H}" rx="10"/><text dy=".35em" x="${x}" y="${top + 20}">${t}7 <tspan style="font-size:10px">(${role} ${n[root]}7)</tspan></text></g>${piano(x, top + 46, r, DOM7)}`;
     arrow(x + W / 2 + 2, y, rx, ry, lbl, 'ar');
     s += `</g>`;
   });
   s += `</g>`;
 
-  s += `<g class="center btn" id="c" tabindex="0" role="button" aria-expanded="${open}" aria-label="Choose chord"><g class="node"><circle cx="${CX}" cy="${CY}" r="${R}"/><text dy=".35em" x="${CX}" y="${CY - 38}">${n[root]}7</text></g>${piano(CX, CY - 10, root, DOM7)}</g>`;
+  s += `<g class="center btn" id="c" tabindex="0" role="button" aria-expanded="${open}" aria-label="${n[root]}7, choose chord"><g class="node"><circle cx="${CX}" cy="${CY}" r="${R}"/><text dy=".35em" x="${CX}" y="${CY - 38}">${n[root]}7</text></g>${piano(CX, CY - 10, root, DOM7)}</g>`;
 
   if (open) {
     SLOT_LABEL.forEach((lab, p) => {
@@ -100,10 +100,9 @@ function render() {
   map.classList.toggle('open', open);
   // innerHTML drops the focused node; hand focus to the new centre
   if (had) map.querySelector('#c').focus();
-  history.replaceState(null, '', '#' + root);
 }
 
-function set(r) { root = pc(r); open = false; render(); }
+function set(r) { root = pc(r); open = false; render(); history.replaceState(null, '', '#' + root); }
 
 map.addEventListener('click', e => {
   const pick = e.target.closest('[data-pick]'), go = e.target.closest('[data-pc]');
@@ -113,13 +112,14 @@ map.addEventListener('click', e => {
   else if (open) { open = false; render(); }
 });
 map.addEventListener('keydown', e => {
-  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.target.dispatchEvent(new MouseEvent('click', { bubbles: true })); }
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (!e.repeat) e.target.dispatchEvent(new MouseEvent('click', { bubbles: true })); }
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && open) { open = false; render(); } });
-window.addEventListener('hashchange', () => { const h = parseInt(location.hash.slice(1), 10); if (h >= 0 && h < 12 && h !== root) set(h); });
+// root from the URL hash; the current root when the hash is missing or invalid
+const fromHash = () => { const h = parseInt(location.hash.slice(1), 10); return h >= 0 && h < 12 ? h : root; };
+window.addEventListener('hashchange', () => { const h = fromHash(); if (h !== root) set(h); });
 
-const h0 = parseInt(location.hash.slice(1), 10);
-if (h0 >= 0 && h0 < 12) root = h0;
+root = fromHash();
 render();
 
 // self-check, run last so a throw here cannot blank the page:

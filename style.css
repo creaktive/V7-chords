@@ -15,7 +15,6 @@ text { fill:var(--fg); font-size:17px; text-anchor:middle; pointer-events:none; 
 .in .node-box, .in .edge { stroke:var(--red); }
 .in text { fill:var(--red); }
 .in .edge { stroke-width:2.5; }
-.in .lbl { stroke:var(--bg); }
 #map .kw { fill:var(--key); stroke:var(--line); stroke-width:.6; }
 #map .kb { fill:var(--blk); stroke:var(--line); stroke-width:.6; }
 #map .on { fill:var(--hl); }
