@@ -8,7 +8,7 @@ Live: https://creaktive.github.io/V7-chords/
 
 ## What it shows
 
-The centre is one dominant 7th chord (D7 when the page opens). Around it:
+The centre is one dominant 7th chord (C7 when the page opens). Around it:
 
 - **Red chords** lead into the centre. They sit on the left, or across the top on a phone.
 - **Grey chords** are the triads the centre can move to. They sit on the right, or across the bottom on a phone. Each is shown as major or minor; the dashed key is the minor third.
@@ -33,7 +33,7 @@ A tritone substitute is the dominant 7th chord a tritone (6 semitones) away.
 - Click or tap the centre circle to open a ring of 12 roots, then pick one. Click an empty part of the map, or press Escape, to close it.
 - Click or tap a red chord to make it the new centre.
 - From the keyboard: Tab to move, Enter or Space to activate, Escape to close the ring.
-- The root lives in the URL hash, so a link keeps the chord: `#0` is C, `#2` is D, up to `#11` for B. On load, a missing or invalid hash gives D.
+- The root lives in the URL hash, so a link keeps the chord: `#0` is C, `#2` is D, up to `#11` for B. On load, a missing or invalid hash gives C.
 - Notes are spelled with flats when the centre is D♭, E♭, F, A♭ or B♭, and with sharps otherwise. The ring shows both spellings.
 - The Spelling button cycles through that automatic choice, all sharps (♯) and all flats (♭). A forced spelling applies to the ring too.
 - The Steps button switches the edge labels between semitones and whole tones: ⊖7 becomes ⊖3½.

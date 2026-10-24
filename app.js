@@ -10,7 +10,7 @@ const IN = [[7, '⊖7', 'sec. dom. of'], [6, '⊕6', 'sub. of'], [1, '⊖1', 'su
 const R = 88;
 const map = document.getElementById('map');
 const narrow = matchMedia('(max-width: 599px)');
-let root = 2, open = false, spell = '', whole = false;
+let root = 0, open = false, spell = '', whole = false;
 
 // Key geometry from http://www.quadibloc.com/other/cnv05.htm, emitting SVG instead of p5 calls
 class PianoOctave {
