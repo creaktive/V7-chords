@@ -72,6 +72,9 @@ const TALL = {
 // markup for one state; root/open/spell/whole are arguments (shadowing the globals) so the self-check can draw any state
 function draw(root, open, L = WIDE, spell = '', whole = false) {
   const n = names(root, spell), { cx, cy } = L;
+  // mark a name that differs from the chord's own spelling (its name as the centre in auto),
+  // borrowed from the centre's list in auto or from a forced one
+  const borrowed = r => n[r] !== names(r)[r] ? ' class="borrowed"' : '';
   let s = `<defs>
     <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z"/></marker>
     <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z"/></marker>
@@ -89,7 +92,7 @@ function draw(root, open, L = WIDE, spell = '', whole = false) {
     const { w, h, at, to, ty, py, pk } = L.out, [x, y] = at(i), r = pc(root + off), t = n[r], top = y - h / 2;
     const [ex, ey] = [x + to[0] * w / 2, y + to[1] * h / 2]; // node edge facing the centre
     const [rx, ry] = rim(ex, ey);
-    s += `<g class="out"><g class="node"><rect class="node-box" x="${x - w / 2}" y="${top}" width="${w}" height="${h}" rx="10"/><text dy=".35em" x="${x}" y="${top + ty}">${t} / ${t}m</text></g>${piano(pk, x, top + py, r, TRIAD, 3)}`;
+    s += `<g class="out"><g class="node"><rect class="node-box" x="${x - w / 2}" y="${top}" width="${w}" height="${h}" rx="10"/><text${borrowed(r)} dy=".35em" x="${x}" y="${top + ty}">${t} / ${t}m</text></g>${piano(pk, x, top + py, r, TRIAD, 3)}`;
     arrow(rx, ry, ex + to[0] * 2, ey + to[1] * 2, lbl);
     s += `</g>`;
   });
@@ -100,15 +103,15 @@ function draw(root, open, L = WIDE, spell = '', whole = false) {
     const [rx, ry] = rim(ex, ey);
     // wide: the role note shares the chord's line; tall: three nodes across leave no room, so it gets its own lines
     const head = L.stack
-      ? `<text dy=".35em" x="${x}" y="${top + ty}">${t}7</text><text class="role" dy=".35em" x="${x}" y="${top + ty + 16}">${role}</text><text class="role" dy=".35em" x="${x}" y="${top + ty + 29}">${n[root]}7</text>`
-      : `<text dy=".35em" x="${x}" y="${top + ty}">${t}7 <tspan style="font-size:10px">(${role} ${n[root]}7)</tspan></text>`;
+      ? `<text${borrowed(r)} dy=".35em" x="${x}" y="${top + ty}">${t}7</text><text class="role" dy=".35em" x="${x}" y="${top + ty + 16}">${role}</text><text class="role" dy=".35em" x="${x}" y="${top + ty + 29}">${n[root]}7</text>`
+      : `<text dy=".35em" x="${x}" y="${top + ty}"><tspan${borrowed(r)}>${t}7</tspan> <tspan style="font-size:10px">(${role} ${n[root]}7)</tspan></text>`;
     s += `<g class="in btn" data-pc="${r}" tabindex="0" role="button" aria-label="Go to ${t}7 (${role} ${n[root]}7)"><g class="node"><rect class="node-box" x="${x - w / 2}" y="${top}" width="${w}" height="${h}" rx="10"/>${head}</g>${piano(pk, x, top + py, r, DOM7)}`;
     arrow(ex + to[0] * 2, ey + to[1] * 2, rx, ry, lbl, 'ar');
     s += `</g>`;
   });
   s += `</g>`;
 
-  s += `<g class="center btn" id="c" tabindex="0" role="button" aria-expanded="${open}" aria-label="${n[root]}7, choose chord"><g class="node"><circle cx="${cx}" cy="${cy}" r="${R}"/><text dy=".35em" x="${cx}" y="${cy - 38}">${n[root]}7</text></g>${piano(po, cx, cy - 10, root, DOM7)}</g>`;
+  s += `<g class="center btn" id="c" tabindex="0" role="button" aria-expanded="${open}" aria-label="${n[root]}7, choose chord"><g class="node"><circle cx="${cx}" cy="${cy}" r="${R}"/><text${borrowed(root)} dy=".35em" x="${cx}" y="${cy - 38}">${n[root]}7</text></g>${piano(po, cx, cy - 10, root, DOM7)}</g>`;
 
   if (open) {
     (spell ? n : SLOT_LABEL).forEach((lab, p) => {
@@ -172,6 +175,8 @@ const lit = (g, cls) => [...g.querySelectorAll('.kw, .kb')]
 const nameOf = g => g.querySelector('.node text').textContent.split(' ')[0];
 const KNOWN = { 2: 'C♯,E,G,A7,G♯7,D♯7', 10: 'A,C,E♭,F7,E7,B7' }; // D map, B♭ map
 const probe = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+// the name each root gets as the centre in auto, e.g. own[1] is 'D♭'
+const own = SHARP.map((_, k) => { probe.innerHTML = draw(k, false); return nameOf(probe.querySelector('.center')).replace('7', ''); });
 for (const L of [WIDE, TALL]) for (let r = 0; r < 12; r++) {
   probe.innerHTML = draw(r, false, L);
   const shown = [...probe.querySelectorAll('.out, .in')].map(nameOf).join();
@@ -183,11 +188,17 @@ for (const L of [WIDE, TALL]) for (let r = 0; r < 12; r++) {
     console.assert(lit(g, 'on') === (seventh ? [0, 4, 7, 10] : [0, 4, 7]).map(v => k + v).join(), 'lit keys', r, name, lit(g, 'on'));
     console.assert(lit(g, 'root') === String(k), 'root key', r, name);
     console.assert(lit(g, 'alt') === (seventh ? '' : String(k + 3)), 'alt key', r, name);
+    // underlined exactly when the name differs from this chord's own spelling
+    console.assert(!!g.querySelector('.borrowed') === (own[k] !== base), 'borrowed', r, name);
   });
 }
 for (const [sp, bad] of [['♯', '♭'], ['♭', '♯']]) for (let r = 0; r < 12; r++) {
   probe.innerHTML = draw(r, false, WIDE, sp);
-  console.assert(![...probe.querySelectorAll('.out, .in, .center')].some(g => nameOf(g).includes(bad)), 'forced spelling', sp, r);
+  probe.querySelectorAll('.out, .in, .center').forEach(g => {
+    const base = nameOf(g).replace('7', ''), k = Math.max(SHARP.indexOf(base), FLAT.indexOf(base));
+    console.assert(!base.includes(bad), 'forced spelling', sp, r, base);
+    console.assert(!!g.querySelector('.borrowed') === (own[k] !== base), 'borrowed', sp, r, base);
+  });
 }
 probe.innerHTML = draw(2, false, WIDE, '', true);
 console.assert([...probe.querySelectorAll('.lbl')].map(l => l.textContent).join() === '⊖½,⊕1,⊖3½,⊖3½,⊕3,⊖½', 'whole tones', probe.querySelectorAll('.lbl').length);

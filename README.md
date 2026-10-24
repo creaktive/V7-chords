@@ -36,6 +36,7 @@ A tritone substitute is the dominant 7th chord a tritone (6 semitones) away.
 - The root lives in the URL hash, so a link keeps the chord: `#0` is C, `#2` is D, up to `#11` for B. On load, a missing or invalid hash gives C.
 - Notes are spelled with flats when the centre is D♭, E♭, F, A♭ or B♭, and with sharps otherwise. The ring shows both spellings.
 - The Spelling button cycles through that automatic choice, all sharps (♯) and all flats (♭). A forced spelling applies to the ring too.
+- An underlined name differs from the chord's own spelling, which is its name as the centre in automatic spelling. In automatic spelling it borrows the centre's spelling: next to C7, C♯7 is underlined because as the centre it is D♭7. A forced spelling can underline the centre too: forcing ♯ on B♭7 shows A♯7. The ring is never underlined.
 - The Steps button switches the edge labels between semitones and whole tones: ⊖7 becomes ⊖3½.
 - Neither button setting is saved in the URL, so a link always opens with automatic spelling and semitones.
 
@@ -65,7 +66,7 @@ In `app.js`:
 
 ## Self-check
 
-When the page loads, it draws all 12 roots in both layouts into a detached SVG and reads the result back. It checks the chord names for the D and B♭ maps, and that every keyboard lights exactly the chord its own label names, including the root key and the minor third. It also checks that a forced spelling shows only sharps or only flats, that forced flats reach the ring, and the whole-tone labels of the D map.
+When the page loads, it draws all 12 roots in both layouts into a detached SVG and reads the result back. It checks the chord names for the D and B♭ maps, and that every keyboard lights exactly the chord its own label names, including the root key and the minor third. It also checks that a forced spelling shows only sharps or only flats, that forced flats reach the ring, that in every spelling mode a name is underlined exactly when it differs from the chord's own spelling, and the whole-tone labels of the D map.
 
 A failure shows only in the browser console as `Assertion failed`. No such line means the check passed.
 

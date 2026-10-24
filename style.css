@@ -10,6 +10,7 @@ footer a { color:inherit; }
 svg { width:100%; max-width:900px; height:auto; display:block; margin:auto; touch-action:manipulation; }
 text { fill:var(--fg); font-size:17px; text-anchor:middle; pointer-events:none; }
 .role { font-size:11px; }
+.borrowed { text-decoration:underline; }
 .node rect, .node circle { fill:var(--node); stroke:var(--line); stroke-width:1.5; }
 #a path { fill:var(--edge); }
 #ar path { fill:var(--red); }
