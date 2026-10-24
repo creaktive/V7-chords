@@ -3,8 +3,8 @@ const FLAT  = ['C','D♭','D','E♭','E','F','G♭','G','A♭','A','B♭','B'];
 const FLAT_ROOTS = [1, 3, 5, 8, 10];
 const SLOT_LABEL = SHARP.map((s, i) => FLAT[i] === s ? s : s + '/' + FLAT[i]);
 
-// [semitone offset from X, edge label]
-const OUT = [[-1, '⊖1'], [2, '⊕2'], [-7, '⊖7']];
+// [semitone offset from X, edge label, role note]; the target a fifth below is the I the centre V7 resolves to
+const OUT = [[-1, '⊖1'], [2, '⊕2'], [-7, '⊖7', 'I / i']];
 const IN = [[7, '⊖7', 'sec. dom. of'], [6, '⊕6', 'sub. of'], [1, '⊖1', 'sub. of sec. dom. of']];
 
 const R = 88;
@@ -88,11 +88,11 @@ function draw(root, open, L = WIDE, spell = '', whole = false) {
   // point on circle rim facing (x,y)
   const rim = (x, y) => { const d = Math.hypot(x - cx, y - cy); return [cx + (x - cx) * (R + 2) / d, cy + (y - cy) * (R + 2) / d]; };
 
-  OUT.forEach(([off, lbl], i) => {
+  OUT.forEach(([off, lbl, role], i) => {
     const { w, h, at, to, ty, py, pk } = L.out, [x, y] = at(i), r = pc(root + off), t = n[r], top = y - h / 2;
     const [ex, ey] = [x + to[0] * w / 2, y + to[1] * h / 2]; // node edge facing the centre
     const [rx, ry] = rim(ex, ey);
-    s += `<g class="out"><g class="node"><rect class="node-box" x="${x - w / 2}" y="${top}" width="${w}" height="${h}" rx="10"/><text${borrowed(r)} dy=".35em" x="${x}" y="${top + ty}">${t} / ${t}m</text></g>${piano(pk, x, top + py, r, TRIAD, 3)}`;
+    s += `<g class="out"><g class="node"><rect class="node-box" x="${x - w / 2}" y="${top}" width="${w}" height="${h}" rx="10"/><text dy=".35em" x="${x}" y="${top + ty}"><tspan${borrowed(r)}>${t} / ${t}m</tspan>${role ? ` <tspan style="font-size:10px">(${role})</tspan>` : ''}</text></g>${piano(pk, x, top + py, r, TRIAD, 3)}`;
     arrow(rx, ry, ex + to[0] * 2, ey + to[1] * 2, lbl);
     s += `</g>`;
   });
@@ -181,6 +181,9 @@ for (const L of [WIDE, TALL]) for (let r = 0; r < 12; r++) {
   probe.innerHTML = draw(r, false, L);
   const shown = [...probe.querySelectorAll('.out, .in')].map(nameOf).join();
   console.assert(!KNOWN[r] || shown === KNOWN[r], 'names', r, shown);
+  // exactly one target is marked I, a fifth below the centre
+  const I = [...probe.querySelectorAll('.out')].filter(g => g.textContent.includes('(I / i)')).map(nameOf);
+  console.assert(I.length === 1 && [SHARP, FLAT].some(l => l.indexOf(I[0]) === pc(r - 7)), 'tonic', r, I);
   probe.querySelectorAll('.out, .in, .center').forEach(g => {
     // each keyboard must light exactly the chord its own label names
     const name = nameOf(g), seventh = name.endsWith('7'), base = name.replace('7', '');

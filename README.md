@@ -11,7 +11,7 @@ Live: https://creaktive.github.io/V7-chords/
 The centre is one dominant 7th chord (C7 when the page opens). Around it:
 
 - **Red chords** lead into the centre. They sit on the left, or across the top on a phone.
-- **Grey chords** are the triads the centre can move to. They sit on the right, or across the bottom on a phone. Each is shown as major or minor; the dashed key is the minor third.
+- **Grey chords** are the triads the centre can move to. They sit on the right, or across the bottom on a phone. Each is shown as major or minor; the dashed key is the minor third. The one a fifth below, marked `I / i`, is the tonic the centre is the V7 of.
 - **Edge labels** give the root motion in semitones, or in whole tones (see below): ⊕ is up, ⊖ is down.
 - **Keyboards** cover two octaves from C. The root key has a stronger colour than the other chord tones.
 
@@ -24,7 +24,7 @@ For D7:
 | D♯7 | tritone substitute of the secondary dominant (`sub. of sec. dom.`) | ⊖1 into D7 |
 | C♯ / C♯m | target | ⊖1 from D7 |
 | E / Em | target | ⊕2 from D7 |
-| G / Gm | target | ⊖7 from D7 |
+| G / Gm | target, marked `I / i`: the tonic D7 is the V7 of | ⊖7 from D7 |
 
 A tritone substitute is the dominant 7th chord a tritone (6 semitones) away.
 
@@ -66,7 +66,7 @@ In `app.js`:
 
 ## Self-check
 
-When the page loads, it draws all 12 roots in both layouts into a detached SVG and reads the result back. It checks the chord names for the D and B♭ maps, and that every keyboard lights exactly the chord its own label names, including the root key and the minor third. It also checks that a forced spelling shows only sharps or only flats, that forced flats reach the ring, that in every spelling mode a name is underlined exactly when it differs from the chord's own spelling, and the whole-tone labels of the D map.
+When the page loads, it draws all 12 roots in both layouts into a detached SVG and reads the result back. It checks the chord names for the D and B♭ maps, that exactly one target is marked I / i and sits a fifth below the centre, and that every keyboard lights exactly the chord its own label names, including the root key and the minor third. It also checks that a forced spelling shows only sharps or only flats, that forced flats reach the ring, that in every spelling mode a name is underlined exactly when it differs from the chord's own spelling, and the whole-tone labels of the D map.
 
 A failure shows only in the browser console as `Assertion failed`. No such line means the check passed.
 
