@@ -15,16 +15,16 @@ The centre is one dominant 7th chord (C7 when the page opens). Around it:
 - **Edge labels** give the root motion in semitones, or in whole tones (see below): ⊕ is up, ⊖ is down.
 - **Keyboards** cover two octaves from C. The root key has a stronger colour than the other chord tones.
 
-For D7:
+For C7 (root motion in semitones):
 
 | Chord | Role | Root motion |
 | --- | --- | --- |
-| A7 | secondary dominant of D7 (`sec. dom.`) | ⊖7 into D7 |
-| G♯7 | tritone substitute of D7 (`sub.`) | ⊕6 into D7 |
-| D♯7 | tritone substitute of the secondary dominant (`sub. of sec. dom.`) | ⊖1 into D7 |
-| C♯ / C♯m | target | ⊖1 from D7 |
-| E / Em | target | ⊕2 from D7 |
-| G / Gm | target, marked `I / i`: the tonic D7 is the V7 of | ⊖7 from D7 |
+| G7 | secondary dominant of C7 (`sec. dom.`) | ⊖7 into C7 |
+| F♯7 | tritone substitute of C7 (`sub.`) | ⊕6 into C7 |
+| C♯7 | tritone substitute of the secondary dominant (`sub. of sec. dom.`) | ⊖1 into C7 |
+| B / Bm | target | ⊖1 from C7 |
+| D / Dm | target | ⊕2 from C7 |
+| F / Fm | target, marked `I / i`: the tonic C7 is the V7 of | ⊖7 from C7 |
 
 A tritone substitute is the dominant 7th chord a tritone (6 semitones) away.
 
