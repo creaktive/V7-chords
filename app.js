@@ -10,7 +10,7 @@ const IN = [[7, '⊖7', 'sec. dom. of'], [6, '⊕6', 'sub. of'], [1, '⊖1', 'su
 const R = 88;
 const map = document.getElementById('map');
 const narrow = matchMedia('(max-width: 599px)');
-let root = 2, open = false;
+let root = 2, open = false, spell = '', whole = false;
 
 // Key geometry from http://www.quadibloc.com/other/cnv05.htm, emitting SVG instead of p5 calls
 class PianoOctave {
@@ -48,8 +48,11 @@ const piano = (p, x, y, r, ivs, alt) => {
   return `<g transform="translate(${x - p.width} ${y})">${p.svg(c.slice(0, 12))}<g transform="translate(${p.width} 0)">${p.svg(c.slice(12))}</g></g>`
 }
 const DOM7 = [0, 4, 7, 10], TRIAD = [0, 4, 7]
-const names = r => FLAT_ROOTS.includes(r) ? FLAT : SHARP;
+// `spell` forces SHARP or FLAT; '' picks by the centre
+const names = (r, spell = '') => spell === '♯' ? SHARP : spell === '♭' ? FLAT : FLAT_ROOTS.includes(r) ? FLAT : SHARP;
 const pc = n => ((n % 12) + 12) % 12;
+// a semitone edge label in whole tones: '⊖7' becomes '⊖3½'
+const wholeTones = l => l.replace(/\d+/, d => (d >> 1 || '') + (d & 1 ? '½' : ''));
 
 // WIDE: nodes in two side columns (tablet and up). TALL: nodes in two rows, three across (phone in portrait).
 // `to` points from a node towards the centre; `ty` and `py` are the title and keyboard offsets from the node top.
@@ -66,15 +69,16 @@ const TALL = {
   out: { w: 120, h: 80, at: i => [XS[i], 468], to: [0, -1], ty: 17, py: 28, pk: poSmall },
 };
 
-// markup for one state; root/open are arguments (shadowing the globals) so the self-check can draw any root
-function draw(root, open, L = WIDE) {
-  const n = names(root), { cx, cy } = L;
+// markup for one state; root/open/spell/whole are arguments (shadowing the globals) so the self-check can draw any state
+function draw(root, open, L = WIDE, spell = '', whole = false) {
+  const n = names(root, spell), { cx, cy } = L;
   let s = `<defs>
     <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z"/></marker>
     <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z"/></marker>
   </defs><g class="dim">`;
 
   const arrow = (x1, y1, x2, y2, lbl, m = 'a') => {
+    if (whole) lbl = wholeTones(lbl);
     s += `<path class="edge" d="M${x1} ${y1}L${x2} ${y2}" marker-end="url(#${m})"/>` +
          `<text dy=".35em" class="lbl" x="${(x1 + x2) / 2}" y="${(y1 + y2) / 2 + L.lbl}">${lbl}</text>`;
   };
@@ -107,7 +111,7 @@ function draw(root, open, L = WIDE) {
   s += `<g class="center btn" id="c" tabindex="0" role="button" aria-expanded="${open}" aria-label="${n[root]}7, choose chord"><g class="node"><circle cx="${cx}" cy="${cy}" r="${R}"/><text dy=".35em" x="${cx}" y="${cy - 38}">${n[root]}7</text></g>${piano(po, cx, cy - 10, root, DOM7)}</g>`;
 
   if (open) {
-    SLOT_LABEL.forEach((lab, p) => {
+    (spell ? n : SLOT_LABEL).forEach((lab, p) => {
       const a = (p * 30 - 90) * Math.PI / 180, x = cx + 135 * Math.cos(a), y = cy + 135 * Math.sin(a);
       s += `<g class="slot btn node${p === root ? ' sel' : ''}" data-pick="${p}" tabindex="0" role="button" aria-label="${lab}7"><circle cx="${x}" cy="${y}" r="29"/><text dy=".35em" x="${x}" y="${y}">${lab}</text></g>`;
     });
@@ -118,7 +122,7 @@ function draw(root, open, L = WIDE) {
 function render() {
   const had = map.contains(document.activeElement), L = narrow.matches ? TALL : WIDE;
   map.setAttribute('viewBox', L.vb);
-  map.innerHTML = draw(root, open, L);
+  map.innerHTML = draw(root, open, L, spell, whole);
   map.classList.toggle('open', open);
   // innerHTML drops the focused node; hand focus to the new centre
   if (had) map.querySelector('#c').focus();
@@ -145,6 +149,20 @@ window.addEventListener('hashchange', () => { const h = fromHash(); if (h !== ro
 root = fromHash();
 render();
 
+// wired after the first render, so a stale cached index.html without these buttons cannot blank the map
+const spellBtn = document.getElementById('spell');
+spellBtn.addEventListener('click', () => {
+  spell = { '': '♯', '♯': '♭', '♭': '' }[spell];
+  spellBtn.textContent = 'Spelling: ' + (spell || 'auto');
+  render();
+});
+const unitBtn = document.getElementById('unit');
+unitBtn.addEventListener('click', () => {
+  whole = !whole;
+  unitBtn.textContent = 'Steps: ' + (whole ? 'whole tones' : 'semitones');
+  render();
+});
+
 // self-check, run last so a throw here cannot blank the page:
 // draw every root, then read the names and lit keys back from the markup
 const KEY_PC = [0, 2, 4, 5, 7, 9, 11, 1, 3, 6, 8, 10]; // nth key of an octave: 7 white, then 5 black
@@ -167,3 +185,11 @@ for (const L of [WIDE, TALL]) for (let r = 0; r < 12; r++) {
     console.assert(lit(g, 'alt') === (seventh ? '' : String(k + 3)), 'alt key', r, name);
   });
 }
+for (const [sp, bad] of [['♯', '♭'], ['♭', '♯']]) for (let r = 0; r < 12; r++) {
+  probe.innerHTML = draw(r, false, WIDE, sp);
+  console.assert(![...probe.querySelectorAll('.out, .in, .center')].some(g => nameOf(g).includes(bad)), 'forced spelling', sp, r);
+}
+probe.innerHTML = draw(2, false, WIDE, '', true);
+console.assert([...probe.querySelectorAll('.lbl')].map(l => l.textContent).join() === '⊖½,⊕1,⊖3½,⊖3½,⊕3,⊖½', 'whole tones', probe.querySelectorAll('.lbl').length);
+probe.innerHTML = draw(2, true, WIDE, '♭');
+console.assert([...probe.querySelectorAll('.slot')].map(g => g.textContent).join() === FLAT.join(), 'flat slots');
