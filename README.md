@@ -6,6 +6,8 @@ An interactive map of how a dominant 7th chord connects to its neighbours, with 
 
 Live: https://creaktive.github.io/V7-chords/
 
+The map is based on a sketch by [Sergio Pusep](https://www.sergiopusep.com), music teacher.
+
 ## What it shows
 
 The centre is one dominant 7th chord (C7 when the page opens). Around it:
@@ -55,7 +57,7 @@ The page needs a reasonably recent browser. The layout switch uses `matchMedia(.
 | `index.html` | The page shell: heading, instructions, the Spelling and Steps buttons, the empty `<svg id="map">`, a footer link. |
 | `style.css` | Colours (light and dark), node and keyboard styling, focus ring. |
 | `app.js` | All logic. |
-| `reference/` | The Mermaid source (`.mmd`) of the first sketch. It labels edges in whole tones and uses Portuguese `do` for "of"; the app defaults to semitones and uses English. |
+| `reference/` | The Mermaid source (`.mmd`) of Sergio Pusep's original sketch. It labels edges in whole tones and uses Portuguese `do` for "of"; the app defaults to semitones and uses English. |
 
 In `app.js`:
 
