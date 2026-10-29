@@ -13,7 +13,7 @@ text { fill:var(--fg); font-size:17px; text-anchor:middle; pointer-events:none; 
 .borrowed { text-decoration:underline; }
 .node rect, .node circle { fill:var(--node); stroke:var(--line); stroke-width:1.5; }
 #a path { fill:var(--edge); }
-#ar path { fill:var(--red); }
+#ar path, #as path { fill:var(--red); }
 .edge { stroke:var(--edge); stroke-width:1.8; fill:none; }
 .lbl { font-size:17px; paint-order:stroke; stroke:var(--bg); stroke-width:6px; }
 .in .node-box, .in .edge { stroke:var(--red); }

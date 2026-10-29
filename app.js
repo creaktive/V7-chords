@@ -5,7 +5,7 @@ const SLOT_LABEL = SHARP.map((s, i) => FLAT[i] === s ? s : s + '/' + FLAT[i]);
 
 // [semitone offset from X, edge label, role note]; the target a fifth below is the I the centre V7 resolves to
 const OUT = [[-1, '⊖1'], [2, '⊕2'], [-7, '⊖7', 'I / i']];
-const IN = [[7, '⊖7', 'sec. dom. of'], [6, '⊕6', 'sub. of'], [1, '⊖1', 'sub. of sec. dom. of']];
+const IN = [[7, '⊖7', 'sec. dom. of'], [6, '±6', 'sub. of'], [1, '⊖1', 'sub. of sec. dom. of']];
 
 const R = 88;
 const map = document.getElementById('map');
@@ -78,11 +78,12 @@ function draw(root, open, L = WIDE, spell = '', whole = false) {
   let s = `<defs>
     <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z"/></marker>
     <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z"/></marker>
+    <marker id="as" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M10 0L0 5L10 10z"/></marker>
   </defs><g class="dim">`;
 
-  const arrow = (x1, y1, x2, y2, lbl, m = 'a') => {
+  const arrow = (x1, y1, x2, y2, lbl, m = 'a', both = false) => {
     if (whole) lbl = wholeTones(lbl);
-    s += `<path class="edge" d="M${x1} ${y1}L${x2} ${y2}" marker-end="url(#${m})"/>` +
+    s += `<path class="edge" d="M${x1} ${y1}L${x2} ${y2}" marker-end="url(#${m})"${both ? ' marker-start="url(#as)"' : ''}/>` +
          `<text dy=".35em" class="lbl" x="${(x1 + x2) / 2}" y="${(y1 + y2) / 2 + L.lbl}">${lbl}</text>`;
   };
   // point on circle rim facing (x,y)
@@ -106,7 +107,7 @@ function draw(root, open, L = WIDE, spell = '', whole = false) {
       ? `<text${borrowed(r)} dy=".35em" x="${x}" y="${top + ty}">${t}7</text><text class="role" dy=".35em" x="${x}" y="${top + ty + 16}">${role}</text><text class="role" dy=".35em" x="${x}" y="${top + ty + 29}">${n[root]}7</text>`
       : `<text dy=".35em" x="${x}" y="${top + ty}"><tspan${borrowed(r)}>${t}7</tspan> <tspan style="font-size:10px">(${role} ${n[root]}7)</tspan></text>`;
     s += `<g class="in btn" data-pc="${r}" tabindex="0" role="button" aria-label="Go to ${t}7 (${role} ${n[root]}7)"><g class="node"><rect class="node-box" x="${x - w / 2}" y="${top}" width="${w}" height="${h}" rx="10"/>${head}</g>${piano(pk, x, top + py, r, DOM7)}`;
-    arrow(ex + to[0] * 2, ey + to[1] * 2, rx, ry, lbl, 'ar');
+    arrow(ex + to[0] * 2, ey + to[1] * 2, rx, ry, lbl, 'ar', off === 6); // a tritone substitution works both ways
     s += `</g>`;
   });
   s += `</g>`;
@@ -204,6 +205,6 @@ for (const [sp, bad] of [['♯', '♭'], ['♭', '♯']]) for (let r = 0; r < 12
   });
 }
 probe.innerHTML = draw(2, false, WIDE, '', true);
-console.assert([...probe.querySelectorAll('.lbl')].map(l => l.textContent).join() === '⊖½,⊕1,⊖3½,⊖3½,⊕3,⊖½', 'whole tones', probe.querySelectorAll('.lbl').length);
+console.assert([...probe.querySelectorAll('.lbl')].map(l => l.textContent).join() === '⊖½,⊕1,⊖3½,⊖3½,±3,⊖½', 'whole tones', probe.querySelectorAll('.lbl').length);
 probe.innerHTML = draw(2, true, WIDE, '♭');
 console.assert([...probe.querySelectorAll('.slot')].map(g => g.textContent).join() === FLAT.join(), 'flat slots');

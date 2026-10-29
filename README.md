@@ -14,7 +14,7 @@ The centre is one dominant 7th chord (C7 when the page opens). Around it:
 
 - **Red chords** lead into the centre. They sit on the left, or across the top on a phone.
 - **Grey chords** are the triads the centre can move to. They sit on the right, or across the bottom on a phone. Each is shown as major or minor; the dashed key is the minor third. The one a fifth below, marked `I / i`, is the tonic the centre is the V7 of.
-- **Edge labels** give the root motion in semitones, or in whole tones (see below): ⊕ is up, ⊖ is down.
+- **Edge labels** give the root motion in semitones, or in whole tones (see below): ⊕ is up, ⊖ is down, ± is either way (a tritone up or down lands on the same chord).
 - **Keyboards** cover two octaves from C. The root key has a stronger colour than the other chord tones.
 
 For C7 (root motion in semitones):
@@ -22,7 +22,7 @@ For C7 (root motion in semitones):
 | Chord | Role | Root motion |
 | --- | --- | --- |
 | G7 | secondary dominant of C7 (`sec. dom.`) | ⊖7 into C7 |
-| F♯7 | tritone substitute of C7 (`sub.`) | ⊕6 into C7 |
+| F♯7 | tritone substitute of C7 (`sub.`) | ±6 with C7 |
 | C♯7 | tritone substitute of the secondary dominant (`sub. of sec. dom.`) | ⊖1 into C7 |
 | B / Bm | target | ⊖1 from C7 |
 | D / Dm | target | ⊕2 from C7 |
